@@ -14,10 +14,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    await resend.emails.send({
+    // Primary email to your Gmail (verified in Resend)
+    const emailResult = await resend.emails.send({
       from: 'Verge Studio <onboarding@resend.dev>',
-      to: ['cadenhillier@icloud.com', 'cadenhillier33@gmail.com'],
-      subject: `New lead: ${name} — ${business}`,
+      to: 'cadenhillier33@gmail.com',
+      subject: `New Verge lead: ${name} — ${business}`,
       html: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;">
           <h2 style="color:#C4622D;margin-bottom:24px;">New Verge Studio Lead</h2>
@@ -34,17 +35,24 @@ export default async function handler(req, res) {
         </div>
       `
     });
+    
+    console.log('Email sent:', emailResult);
 
-    await resend.emails.send({
-      from: 'Verge Studio <onboarding@resend.dev>',
-      to: '2036714631@vtext.com',
-      subject: '',
-      text: `New Verge lead: ${name}, ${business}. Email: ${email}. Phone: ${phone || 'none'}.`
-    });
+    // SMS notification
+    try {
+      await resend.emails.send({
+        from: 'Verge Studio <onboarding@resend.dev>',
+        to: '2036714631@vtext.com',
+        subject: '',
+        text: `New Verge lead: ${name}, ${business}. Email: ${email}. Phone: ${phone || 'none'}.`
+      });
+    } catch (smsErr) {
+      console.log('SMS failed (expected on free tier):', smsErr.message);
+    }
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, id: emailResult?.id });
   } catch (error) {
     console.error('Contact form error:', error);
-    return res.status(500).json({ error: 'Failed to send' });
+    return res.status(500).json({ error: 'Failed to send', details: error.message });
   }
 }
