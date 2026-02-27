@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   try {
     await resend.emails.send({
       from: 'Verge Studio <onboarding@resend.dev>',
-      to: 'cadenhillier@icloud.com',
+      to: ['cadenhillier@icloud.com', 'cadenhillier33@gmail.com'],
       subject: `New lead: ${name} — ${business}`,
       html: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;">
