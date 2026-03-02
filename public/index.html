@@ -414,6 +414,35 @@ footer{background:var(--dark);padding:64px 56px 40px;}
 .p6-amenity-dot{width:6px;height:6px;border-radius:50%;background:#D4AF7A;margin:0 auto 5px;}
 .p6-amenity-name{font-size:5.5px;color:#7A6E5E;letter-spacing:0.8px;text-transform:uppercase;font-weight:600;}
 
+/* --- AI AUTOMATION: Mainstay AI --- */
+.p7-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:#0D0B09;border-bottom:1px solid rgba(196,168,100,0.1);}
+.p7-logo{font-family:'Fraunces',serif;font-size:12px;color:#F5F0E8;letter-spacing:0.5px;}
+.p7-logo span{color:#C4A864;}
+.p7-links{display:flex;gap:12px;}
+.p7-links span{font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:1.5px;text-transform:uppercase;}
+.p7-get-started{font-size:7px;color:#C4A864;letter-spacing:1.5px;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px;}
+.p7-hero{padding:28px 24px 20px;background:linear-gradient(160deg,#0D0B09,#141008);}
+.p7-eyebrow{font-size:6px;letter-spacing:3px;text-transform:uppercase;color:#C4A864;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.p7-eyebrow::before{content:'';width:20px;height:1px;background:#C4A864;}
+.p7-h1{font-family:'Fraunces',serif;font-size:26px;font-weight:200;color:#F5F0E8;line-height:1.15;margin-bottom:10px;}
+.p7-h1 em{font-style:italic;color:#C4A864;}
+.p7-sub{font-size:7px;color:rgba(255,255,255,0.35);line-height:1.7;max-width:220px;margin-bottom:14px;}
+.p7-ctas{display:flex;align-items:center;gap:12px;}
+.p7-cta{display:inline-block;background:#C4A864;color:#0D0B09;font-size:6px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 14px;}
+.p7-cta-link{font-size:7px;color:rgba(255,255,255,0.4);text-decoration:underline;text-underline-offset:2px;}
+.p7-integrations{padding:10px 20px 12px;background:#0D0B09;border-top:1px solid rgba(255,255,255,0.04);}
+.p7-int-label{font-size:5px;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin-bottom:6px;}
+.p7-int-row{display:flex;flex-wrap:wrap;gap:4px;}
+.p7-int-badge{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:3px 8px;font-size:5px;color:rgba(255,255,255,0.35);letter-spacing:0.5px;display:flex;align-items:center;gap:3px;}
+.p7-int-dot{width:4px;height:4px;border-radius:50%;}
+.p7-dot-blue{background:#4285F4;}
+.p7-dot-pink{background:#E1306C;}
+.p7-dot-fb{background:#1877F2;}
+.p7-dot-red{background:#EA4335;}
+.p7-dot-teal{background:#0088CC;}
+.p7-dot-gold{background:#C4A864;}
+.p7-dot-green{background:#34A853;}
+
 /* ============================================================= */
 
 /* ====================================================================
@@ -639,6 +668,7 @@ footer::before{content:'';position:absolute;top:0;left:64px;right:64px;height:1p
     <button class="filter-tab" onclick="filterWork('law',this)">Law</button>
     <button class="filter-tab" onclick="filterWork('fitness',this)">Fitness</button>
     <button class="filter-tab" onclick="filterWork('hospitality',this)">Hospitality</button>
+    <button class="filter-tab" onclick="filterWork('ai',this)">AI / Tech</button>
   </div>
   <div class="work-grid" id="work-grid">
 
@@ -659,6 +689,9 @@ footer::before{content:'';position:absolute;top:0;left:64px;right:64px;height:1p
 
     <!-- HOTEL: The Greystone Inn -->
     <div class="work-card reveal reveal-delay-1" data-cat="hospitality"><div class="work-tag">Hospitality</div><div class="work-card-inner"><div class="work-browser"><div class="work-browser-bar"><div class="work-browser-dots"><div class="wbd wbd-r"></div><div class="wbd wbd-y"></div><div class="wbd wbd-g"></div></div><div class="work-browser-url">thegreystone-inn.com</div></div><div><div class="p6-nav"><div class="p6-logo">THE GREYSTONE INN</div><div class="p6-links"><span>Rooms</span><span>Dining</span><span>Book</span></div></div><div class="p6-hero"><div class="p6-img"></div><div class="p6-right"><div class="p6-eyebrow">Guilford, Connecticut</div><div class="p6-h2">Where the coast<br/>meets comfort.</div><div class="p6-price">From <span>$189</span> / night</div><div class="p6-cta">Check Availability</div></div></div><div class="p6-amenities"><div class="p6-amenity"><div class="p6-amenity-dot"></div><div class="p6-amenity-name">Pool</div></div><div class="p6-amenity"><div class="p6-amenity-dot"></div><div class="p6-amenity-name">Restaurant</div></div><div class="p6-amenity"><div class="p6-amenity-dot"></div><div class="p6-amenity-name">Spa</div></div><div class="p6-amenity"><div class="p6-amenity-dot"></div><div class="p6-amenity-name">Beach</div></div><div class="p6-amenity"><div class="p6-amenity-dot"></div><div class="p6-amenity-name">Tennis</div></div></div></div></div><div class="work-card-overlay"><div class="work-overlay-tag">Hospitality</div><div class="work-overlay-title">The Greystone Inn</div><div class="work-overlay-desc">Full rebrand and rebuild. Direct booking rate increased, reducing reliance on OTA commissions.</div></div></div></div>
+
+    <!-- AI AUTOMATION: Mainstay AI -->
+    <div class="work-card reveal" data-cat="ai"><div class="work-tag">AI / Tech</div><div class="work-card-inner"><div class="work-browser"><div class="work-browser-bar"><div class="work-browser-dots"><div class="wbd wbd-r"></div><div class="wbd wbd-y"></div><div class="wbd wbd-g"></div></div><div class="work-browser-url">mainstay-ai.com</div></div><div><div class="p7-nav"><div class="p7-logo">Mainstay<span>.AI</span></div><div class="p7-links"><span>How It Works</span><span>Services</span><span>Pricing</span><span>FAQ</span></div><div class="p7-get-started">Get Started</div></div><div class="p7-hero"><div class="p7-eyebrow">AI Automation for Local Business</div><div class="p7-h1">We install <em>AI</em><br/>that runs<br/>your business.</div><div class="p7-sub">One visit. We set up a small computer at your location. It handles your marketing, customer follow-up, and daily operations automatically.</div><div class="p7-ctas"><div class="p7-cta">Get Started &mdash; Free Consultation</div><div class="p7-cta-link">See how it works</div></div></div><div class="p7-integrations"><div class="p7-int-label">Connects To</div><div class="p7-int-row"><div class="p7-int-badge"><div class="p7-int-dot p7-dot-blue"></div>Gmail</div><div class="p7-int-badge"><div class="p7-int-dot p7-dot-pink"></div>Instagram</div><div class="p7-int-badge"><div class="p7-int-dot p7-dot-fb"></div>Facebook</div><div class="p7-int-badge"><div class="p7-int-dot p7-dot-red"></div>Google Business</div><div class="p7-int-badge"><div class="p7-int-dot p7-dot-teal"></div>Telegram</div><div class="p7-int-badge"><div class="p7-int-dot p7-dot-gold"></div>Mailchimp</div><div class="p7-int-badge"><div class="p7-int-dot p7-dot-green"></div>Sheets</div><div class="p7-int-badge"><div class="p7-int-dot p7-dot-blue"></div>Calendly</div></div></div></div></div><div class="work-card-overlay"><div class="work-overlay-tag">AI / Tech</div><div class="work-overlay-title">Mainstay AI</div><div class="work-overlay-desc">Full brand identity and website for an AI automation startup. Designed to convert local business owners from the first scroll.</div></div></div></div>
 
   </div>
 </section>
