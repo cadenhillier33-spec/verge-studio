@@ -23,6 +23,13 @@ body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--charcoal
 .stat-pill{background:rgba(255,255,255,0.1);border-radius:20px;padding:6px 16px;color:#fff;font-size:13px;font-weight:500}
 .stat-pill .num{color:var(--orange);font-weight:700;font-size:15px;margin-right:4px}
 
+/* Sync indicator */
+.sync-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:#aaa}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#66BB6A;animation:pulse 2s infinite}
+.sync-dot.error{background:#FF4444;animation:none}
+.sync-dot.loading{background:#FFB347;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
 /* Pipeline Bar */
 .pipeline-bar{background:#fff;border-bottom:1px solid #e0d8d0;padding:20px 40px;display:flex;gap:0;align-items:stretch}
 .pipeline-stage{flex:1;text-align:center;padding:12px 8px;cursor:pointer;transition:all 0.2s;border-bottom:3px solid transparent;position:relative}
@@ -79,6 +86,12 @@ body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--charcoal
 .copy-btn{padding:8px 12px;border:1px solid #e0d8d0;border-radius:8px;background:#fff;cursor:pointer;font-size:12px;transition:all 0.2s;font-weight:500}
 .copy-btn:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
 
+/* Notes inline edit */
+.card-notes{padding:0 16px 8px}
+.card-notes-text{font-size:12px;color:#888;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid transparent;transition:all 0.2s}
+.card-notes-text:hover{border-color:#e0d8d0;background:#FAFAF8}
+.card-notes-input{width:100%;padding:6px 8px;border:1px solid var(--orange);border-radius:6px;font-size:12px;font-family:'Inter',sans-serif;resize:none;outline:none}
+
 /* Message Section */
 .card-message{padding:0 16px 12px;border-top:1px solid #f0ece8;margin-top:4px}
 .msg-toggle{display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px;cursor:pointer;user-select:none}
@@ -96,6 +109,11 @@ body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--charcoal
 /* Empty state */
 .empty-state{text-align:center;padding:80px 40px;color:#999}
 .empty-state h3{font-size:20px;margin-bottom:8px;color:#666}
+
+/* Loading */
+.loading-state{text-align:center;padding:80px 40px;color:#999}
+.loading-state .spinner{display:inline-block;width:40px;height:40px;border:3px solid #e0d8d0;border-top-color:var(--orange);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* Toast */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--charcoal);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:500;transform:translateY(100px);opacity:0;transition:all 0.3s;z-index:1000;box-shadow:0 4px 20px rgba(0,0,0,0.3)}
@@ -124,16 +142,19 @@ body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--charcoal
 <div class="header">
 <h1>VERGE <span>STUDIO</span> — Lead Tracker</h1>
 <div class="header-stats">
-<div class="stat-pill"><span class="num" id="totalCount">97</span> Total Leads</div>
-<div class="stat-pill"><span class="num" id="ownerCount">19</span> With Owner</div>
-<div class="stat-pill"><span class="num" id="fbCount">32</span> Facebook</div>
-<div class="stat-pill"><span class="num" id="phoneCount">67</span> Phone</div>
+<div class="stat-pill"><span class="num" id="totalCount">—</span> Total Leads</div>
+<div class="stat-pill"><span class="num" id="ownerCount">—</span> With Owner</div>
+<div class="stat-pill"><span class="num" id="fbCount">—</span> Facebook</div>
+<div class="stat-pill"><span class="num" id="phoneCount">—</span> Phone</div>
+<div class="stat-pill">
+  <span class="sync-indicator"><span class="sync-dot" id="syncDot"></span> <span id="syncLabel">Synced</span></span>
+</div>
 </div>
 </div>
 
 <div class="pipeline-bar" id="pipelineBar">
 <div class="pipeline-stage active" data-stage="all" onclick="filterByStage('all')">
-<div class="stage-count" id="stage-all">97</div>
+<div class="stage-count" id="stage-all">—</div>
 <div class="stage-label">All Leads</div>
 </div>
 <div class="pipeline-stage" data-stage="not-contacted" onclick="filterByStage('not-contacted')">
@@ -173,153 +194,164 @@ body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--charcoal
 <button class="filter-btn" data-priority="owner" onclick="filterPriority('owner')">👤 Has Owner</button>
 </div>
 
-<div class="leads-grid" id="leadsGrid"></div>
+<div class="leads-grid" id="leadsGrid">
+  <div class="loading-state"><div class="spinner"></div><h3>Loading leads from database...</h3></div>
+</div>
 
 <div class="export-bar">
 <div class="left">Pipeline: <strong id="pipelineValue">$0</strong> potential revenue (<strong id="closedValue">0</strong> closed)</div>
 <div style="display:flex;gap:8px">
 <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
-<button class="export-btn" onclick="saveProgress()">💾 Save Progress</button>
+<button class="export-btn" onclick="refreshData()">🔄 Refresh</button>
 </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// Lead data
-const leads = [
-  {"id":1,"name":"Grano Arso","owner":"Chef Joel Gargano","industry":"Restaurant","city":"Chester","phone":"","facebook":"","linkedin":"","website":"","address":"","email":"","notes":"Italian restaurant - NO WEBSITE (excellent prospect)","priority":"hot","status":"not-contacted"},
-  {"id":2,"name":"Ciro Landscaping LLC","owner":"Wilson B. Santiago","industry":"Landscaping","city":"Clinton","phone":"(860) 664-8638","facebook":"","linkedin":"","website":"","address":"","email":"","notes":"Established 2006 - NO WEBSITE (excellent prospect)","priority":"hot","status":"not-contacted"},
-  {"id":3,"name":"Prime 16","owner":"Bob Potter","industry":"Restaurant","city":"Orange","phone":"","facebook":"","linkedin":"","website":"","address":"","email":"","notes":"Burger & craft beer spot - NO WEBSITE (excellent prospect)","priority":"hot","status":"not-contacted"},
-  {"id":4,"name":"Bonfire Grille","owner":"Richard G. Jurzyk Jr.","industry":"Restaurant","city":"Milford","phone":"","facebook":"","linkedin":"","website":"","address":"","email":"","notes":"Gastropub - NO WEBSITE (excellent prospect)","priority":"hot","status":"not-contacted"},
-  {"id":5,"name":"Dockside Brewery","owner":"Robert H. Chicoine Jr.","industry":"Restaurant/Bar","city":"Milford","phone":"","facebook":"","linkedin":"","website":"","address":"","email":"","notes":"Waterfront brewery - NO WEBSITE (excellent prospect)","priority":"hot","status":"not-contacted"},
-  {"id":6,"name":"The Place Restaurant","owner":"","industry":"Restaurant","city":"Guilford","phone":"","facebook":"","linkedin":"","website":"","address":"","email":"","notes":"Outdoor seafood restaurant - NO WEBSITE (excellent prospect)","priority":"hot","status":"not-contacted"},
-  {"id":7,"name":"The Ivoryton Tavern","owner":"Laura Z. Yellin","industry":"Restaurant","city":"Chester","phone":"","facebook":"","linkedin":"","website":"","address":"","email":"","notes":"American tavern - NO WEBSITE (excellent prospect)","priority":"hot","status":"not-contacted"},
-  {"id":8,"name":"Jefferson Plumbing","owner":"Edward L. Jefferson Jr.","industry":"Plumbing","city":"Hamden","phone":"","facebook":"","linkedin":"","website":"","address":"","email":"","notes":"Established 2004 - NO WEBSITE (excellent prospect)","priority":"hot","status":"not-contacted"},
-  {"id":9,"name":"Café Allegre","owner":"Chef Ilario Suppa","industry":"Restaurant","city":"Madison","phone":"+1 203-245-5700","facebook":"https://www.facebook.com/328820883840918","linkedin":"https://www.linkedin.com/company/cafe-allegre","website":"https://www.cafeallegre.com/","address":"725 Boston Post Road, Madison, Connecticut 06443, US","email":"","notes":"Italian restaurant, basic website","priority":"warm","status":"not-contacted"},
-  {"id":10,"name":"The Wharf Restaurant","owner":"","industry":"Restaurant","city":"Madison","phone":"","facebook":"","linkedin":"","website":"https://thewharfmadison.com/","address":"","email":"","notes":"Waterfront dining, website needs update","priority":"warm","status":"not-contacted"},
-  {"id":11,"name":"Aiello Home Services","owner":"","industry":"HVAC & Plumbing","city":"Essex","phone":"+1 855-569-2567","facebook":"","linkedin":"https://www.linkedin.com/company/aiellohomeservices","website":"https://www.aiellohomeservices.com/","address":"35B Nutmeg Drive South, Trumbull, Connecticut 06611, US","email":"","notes":"Family business since 1931, needs website update","priority":"warm","status":"not-contacted"},
-  {"id":12,"name":"Penny Lane Pub & Restaurant","owner":"","industry":"Restaurant","city":"Old Saybrook","phone":"+1 860-388-9646","facebook":"https://www.facebook.com/PennyLanePubandRestaurant","linkedin":"https://www.linkedin.com/company/penny-lane-pub-&-restaurant","website":"https://pennylanepub.net/","address":"150 Main Street, Old Saybrook, Connecticut 06475, US","email":"","notes":"English-style pub, basic website","priority":"warm","status":"not-contacted"},
-  {"id":13,"name":"Bar Bouchée","owner":"","industry":"Restaurant","city":"Madison","phone":"+1 203-245-5600","facebook":"https://www.facebook.com/BarBoucheeBistro","linkedin":"https://www.linkedin.com/company/bar-bouchee","website":"https://barbouchee.com/","address":"8 Samson Rock Drive, Madison, Connecticut 06443, US","email":"","notes":"French bistro, functional website","priority":"cool","status":"not-contacted"},
-  {"id":14,"name":"Guilford Smiles Dental","owner":"","industry":"Dentist","city":"Guilford","phone":"(203) 453-4475","facebook":"","linkedin":"https://www.linkedin.com/company/guilford-smiles-dental","website":"https://www.guilfordsmiles.com/","address":"","email":"","notes":"Dental practice, functional website","priority":"cool","status":"not-contacted"},
-  {"id":15,"name":"John D. Michalak, DMD","owner":"John D. Michalak, DMD","industry":"Dentist","city":"Branford","phone":"+1 203-488-6553","facebook":"","linkedin":"https://www.linkedin.com/company/john-d-michalak-dmd","website":"https://www.branforddentist.com/","address":"","email":"","notes":"General dentistry, basic website","priority":"cool","status":"not-contacted"},
-  {"id":16,"name":"Branford Dental Care","owner":"Dr. Robert & Maria Hacker","industry":"Dentist","city":"Branford","phone":"","facebook":"","linkedin":"","website":"https://branforddentalcare.com/","address":"","email":"","notes":"Family dental practice","priority":"cool","status":"not-contacted"},
-  {"id":17,"name":"Admire Dental Branford","owner":"Veerjinder Singh","industry":"Dentist","city":"Branford","phone":"","facebook":"","linkedin":"","website":"https://admiredentalbranford.com/","address":"","email":"","notes":"Modern dental practice","priority":"cool","status":"not-contacted"},
-  {"id":18,"name":"PureSmiles Dental","owner":"","industry":"Dentist","city":"Branford","phone":"","facebook":"","linkedin":"","website":"https://puresmilesct.com/","address":"","email":"","notes":"Family cosmetic dentistry","priority":"cool","status":"not-contacted"},
-  {"id":19,"name":"New Haven Dental Group - Branford","owner":"","industry":"Dentist","city":"Branford","phone":"(203) 488-0091","facebook":"","linkedin":"","website":"https://www.newhavendentalbranford.com/","address":"","email":"","notes":"Established practice, 40+ years","priority":"cool","status":"not-contacted"},
-  {"id":20,"name":"Fresh Salt at Saybrook Point","owner":"","industry":"Restaurant","city":"Old Saybrook","phone":"","facebook":"","linkedin":"","website":"https://www.saybrook.com/dine/fresh-salt/","address":"","email":"","notes":"Waterfront fine dining, needs better web presence","priority":"cool","status":"not-contacted"},
-  {"id":21,"name":"Liv's Oyster Bar","owner":"John Brescio","industry":"Restaurant","city":"Old Saybrook","phone":"+1 860-388-0600","facebook":"https://www.facebook.com/livsoysterbar","linkedin":"https://www.linkedin.com/company/livs-oyster-bar","website":"https://livsoysterbar.com/","address":"166 Main Street, Old Saybrook, Connecticut 06475, US","email":"","notes":"Seafood restaurant, functional website","priority":"cool","status":"not-contacted"},
-  {"id":22,"name":"Skippers Seafood","owner":"","industry":"Restaurant","city":"Old Saybrook","phone":"+1 860-399-2528","facebook":"https://www.facebook.com/Skippers-Restaurant-Old-Saybrook-CT-105259591246375","linkedin":"","website":"https://skippersseafood.com/","address":"519 Boston Post Road, Old Saybrook, Connecticut 06475, US","email":"","notes":"Seafood restaurant","priority":"cool","status":"not-contacted"},
-  {"id":23,"name":"Parthenon Diner","owner":"","industry":"Restaurant","city":"Branford & Old Saybrook","phone":"+1 203-481-0333","facebook":"https://www.facebook.com/1718559108359174","linkedin":"https://www.linkedin.com/company/parthenon-diner-restaurant","website":"https://www.parthenondiner.com/","address":"374 East Main Street, Branford, Connecticut 06405, US","email":"","notes":"Classic diner, 40-year establishment","priority":"cool","status":"not-contacted"},
-  {"id":24,"name":"Rapid Service Plumbing","owner":"","industry":"Plumbing & Electrical","city":"Essex","phone":"+1 860-434-0186","facebook":"https://www.facebook.com/RapidServiceLLC","linkedin":"https://www.linkedin.com/company/rapid-service-llc","website":"https://www.rapidservicellc.com/","address":"47 Plains Road, Essex, Connecticut 06426, US","email":"","notes":"30+ years in business","priority":"cool","status":"not-contacted"},
-  {"id":25,"name":"Griswold Plumbing Services","owner":"Timothy Griswold","industry":"Plumbing","city":"Essex","phone":"+1 860-554-5219","facebook":"","linkedin":"https://www.linkedin.com/company/griswold-plumbing-services-llc","website":"https://griswoldplumbingct.com/","address":"Connecticut, US","email":"","notes":"Premier plumbing service","priority":"cool","status":"not-contacted"},
-  {"id":26,"name":"River Tavern","owner":"","industry":"Restaurant","city":"Chester","phone":"+1 860-526-9417","facebook":"https://www.facebook.com/rivertavernchester","linkedin":"https://www.linkedin.com/company/river-tavern","website":"https://www.rivertavernrestaurant.com/","address":"23 Main Street, Chester, Connecticut 06412, US","email":"","notes":"Farm-to-table restaurant since 2001","priority":"cool","status":"not-contacted"},
-  {"id":27,"name":"Pattaconk 1850 Bar & Grille","owner":"Rick Miles Jr.","industry":"Restaurant","city":"Chester","phone":"+1 860-526-8143","facebook":"https://www.facebook.com/Pattaconk1850","linkedin":"https://www.linkedin.com/company/pattaconk-1850-bar-grille","website":"https://www.pattaconk1850.com/","address":"2 Main Street, Chester, Connecticut 06412, US","email":"","notes":"Historic restaurant on Main Street","priority":"cool","status":"not-contacted"},
-  {"id":28,"name":"Rusty Rail Tavern","owner":"Robert W. Galbraith Jr.","industry":"Restaurant","city":"Deep River","phone":"+1 860-526-8006","facebook":"https://www.facebook.com/RustyRailTavern","linkedin":"https://www.linkedin.com/company/rusty-rail-tavern","website":"https://www.rustyrailct.com/","address":"Deep River, Connecticut, US","email":"","notes":"Pub with outdoor seating","priority":"cool","status":"not-contacted"},
-  {"id":29,"name":"Shoreline Landscape Co.","owner":"Susan K. Weglein","industry":"Landscaping","city":"Clinton","phone":"+1 860-669-4828","facebook":"","linkedin":"https://www.linkedin.com/company/shoreline-landscape-co-inc","website":"https://www.shorelinelandscapes.com/","address":"49 Indian River Road, Clinton, Connecticut 06413, US","email":"","notes":"Since 1960, serves multiple towns","priority":"cool","status":"not-contacted"},
-  {"id":30,"name":"Giovanni Lawn Care","owner":"Giovanni Sanchez","industry":"Landscaping","city":"Clinton","phone":"+1 860-395-0610","facebook":"","linkedin":"https://www.linkedin.com/company/giovanni-lawn-care-llc","website":"https://giovannilawncare.com/","address":"","email":"","notes":"Full-service landscaping","priority":"cool","status":"not-contacted"},
-  {"id":31,"name":"Cassella Construction","owner":"Stephen P. Cassella","industry":"Excavation & Landscaping","city":"Killingworth","phone":"+1 860-345-8256","facebook":"https://www.facebook.com/cassellaconstruction","linkedin":"https://www.linkedin.com/company/cassella-construction-llc","website":"https://cassellaconstruction.com/","address":"47 Parker Hill Road, Killingworth, Connecticut 06419, US","email":"","notes":"Excavation, drainage, landscaping services","priority":"cool","status":"not-contacted"},
-  {"id":32,"name":"EG Salon","owner":"Eloise Gagnon","industry":"Hair Salon","city":"Middletown","phone":"+1 860-316-7048","facebook":"","linkedin":"https://www.linkedin.com/company/eg-salon-llc","website":"https://egsalon.org/","address":"","email":"","notes":"Premier salon since 2010","priority":"cool","status":"not-contacted"},
-  {"id":33,"name":"Salon Allure","owner":"","industry":"Hair Salon","city":"Durham","phone":"+1 860-788-7788","facebook":"","linkedin":"https://www.linkedin.com/company/salon-allure-ct","website":"https://www.salonallure-ct.com/","address":"","email":"","notes":"18 successful years, relocated to Durham","priority":"cool","status":"not-contacted"},
-  {"id":34,"name":"B. Lee & Co.","owner":"","industry":"Hair Salon","city":"Middletown","phone":"+1 860-788-5744","facebook":"","linkedin":"https://www.linkedin.com/company/b-lee-and-co","website":"https://www.bleeandco.com/","address":"","email":"","notes":"Downtown Middletown salon","priority":"cool","status":"not-contacted"},
-  {"id":35,"name":"Hair Zone","owner":"","industry":"Hair Salon","city":"Middletown","phone":"+1 860-346-2060","facebook":"","linkedin":"https://www.linkedin.com/company/hair-zone-salon","website":"https://www.hairzonesalon.com/","address":"","email":"","notes":"Specialty in color correction","priority":"cool","status":"not-contacted"},
-  {"id":36,"name":"Affordable Landscaping & Tree Service LLC","owner":"Mario Elcuri","industry":"Landscaping","city":"Hamden","phone":"+1 203-988-3424","facebook":"https://www.facebook.com/AffordableLandscapingAndTreeServiceLLC","linkedin":"https://www.linkedin.com/company/affordable-landscaping-&-tree-service-llc","website":"https://www.affordablelandscapingandtreellc.com/","address":"New Haven, Connecticut, US","email":"","notes":"Landscape drainage, tree removal, snow removal","priority":"cool","status":"not-contacted"},
-  {"id":37,"name":"The Giving Tree CT","owner":"","industry":"Landscaping","city":"Hamden","phone":"+1 203-745-5180","facebook":"","linkedin":"https://www.linkedin.com/company/the-giving-tree-ct","website":"https://www.givingtreect.com/","address":"","email":"","notes":"Family-owned, lawn care, tree & shrub services","priority":"cool","status":"not-contacted"},
-  {"id":38,"name":"Rick's Plumbing Service Inc","owner":"Richard G. Jurzyk Jr.","industry":"Plumbing","city":"Hamden","phone":"+1 203-874-6629","facebook":"","linkedin":"https://www.linkedin.com/company/ricks-plumbing-service","website":"https://www.ricksplumbing.com/","address":"","email":"","notes":"Trusted plumbing & heating service","priority":"cool","status":"not-contacted"},
-  {"id":39,"name":"High Rock Plumbing","owner":"","industry":"Plumbing","city":"Hamden","phone":"+1 203-490-6607","facebook":"","linkedin":"https://www.linkedin.com/company/high-rock-plumbing","website":"https://www.highrockplumbingct.com/","address":"","email":"","notes":"24/7 emergency plumbing","priority":"cool","status":"not-contacted"},
-  {"id":40,"name":"Raps Plumbing","owner":"Karen and Paul Wypychoski","industry":"Plumbing","city":"Hamden","phone":"+1 203-876-1212","facebook":"https://www.facebook.com/rapsplumbing","linkedin":"https://www.linkedin.com/company/raps-plumbing","website":"https://rapsplumbing.com/","address":"Hamden, Connecticut, US","email":"","notes":"Full-service plumbing","priority":"cool","status":"not-contacted"},
-  {"id":41,"name":"Drain Wizard","owner":"Robert Gathers","industry":"Plumbing","city":"Meriden","phone":"+1 203-823-8992","facebook":"","linkedin":"https://www.linkedin.com/company/drain-wizard","website":"https://www.drainwizard.plumbing/","address":"","email":"","notes":"Drain cleaning specialist","priority":"cool","status":"not-contacted"},
-  {"id":42,"name":"Dental Group of Meriden-Wallingford","owner":"Sunita Hota","industry":"Dentist","city":"Meriden","phone":"+1 203-235-5588","facebook":"https://www.facebook.com/DentalGroupCT","linkedin":"https://www.linkedin.com/company/dental-group-of-meriden-wallingford","website":"https://dentalgroupct.com/","address":"14 Francis Street, Meriden, Connecticut 06450, US","email":"","notes":"Family dentistry, pediatric services","priority":"cool","status":"not-contacted"},
-  {"id":43,"name":"Smilen Dental Group","owner":"","industry":"Dentist","city":"Wallingford","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/smilen-dental-group","website":"https://smilendentalgroup.com/","address":"","email":"","notes":"Cosmetic and restorative dentistry","priority":"cool","status":"not-contacted"},
-  {"id":44,"name":"East Main Dental","owner":"","industry":"Dentist","city":"Meriden","phone":"","facebook":"","linkedin":"","website":"http://eastmaindental.com/","address":"","email":"","notes":"Cosmetic dentistry","priority":"cool","status":"not-contacted"},
-  {"id":45,"name":"Hergott Dental Associates","owner":"Dr. David K. Hergott","industry":"Dentist","city":"Meriden","phone":"+1 203-237-4430","facebook":"","linkedin":"https://www.linkedin.com/company/hergott-dental-associates","website":"https://www.hergottdental.com/","address":"Meriden, Connecticut, US","email":"","notes":"Since 1959, cosmetic & implant dentistry","priority":"cool","status":"not-contacted"},
-  {"id":46,"name":"Dr. Schupack & Becker Family Dentistry","owner":"Dr. Schupack","industry":"Dentist","city":"Wallingford","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/schupack-becker-family-dentistry","website":"https://www.mywallingforddentist.com/","address":"","email":"","notes":"Since 1985, family dentistry","priority":"cool","status":"not-contacted"},
-  {"id":47,"name":"Stonebridge Restaurant","owner":"","industry":"Restaurant","city":"Milford","phone":"+1 203-874-7947","facebook":"https://www.facebook.com/StonebridgeRestaurant","linkedin":"https://www.linkedin.com/company/stonebridge-restaurant","website":"https://www.stonebridgerestaurant.com/","address":"50 Daniel Street, Milford, Connecticut 06460, US","email":"","notes":"American restaurant, functional website","priority":"cool","status":"not-contacted"},
-  {"id":48,"name":"Anchor Social","owner":"","industry":"Restaurant","city":"Milford","phone":"+1 203-693-4022","facebook":"https://www.facebook.com/AnchorSocialMilford","linkedin":"https://www.linkedin.com/company/anchor-social","website":"https://anchorsocialmilford.com/","address":"Milford, Connecticut, US","email":"","notes":"New American restaurant, modern website","priority":"cool","status":"not-contacted"},
-  {"id":49,"name":"Gabriele's Ristorante Italiano","owner":"","industry":"Restaurant","city":"Orange","phone":"+1 203-799-2811","facebook":"","linkedin":"https://www.linkedin.com/company/gabrieles-ristorante-italiano","website":"https://www.gabrielect.com/","address":"326 Boston Post Road, Orange, Connecticut 06477, US","email":"","notes":"Italian restaurant open 7 days","priority":"cool","status":"not-contacted"},
-  {"id":50,"name":"Pearce Real Estate - Milford","owner":"Barbara Louise Pearce","industry":"Real Estate","city":"Milford","phone":"+1 203-783-9999","facebook":"https://www.facebook.com/pearcere","linkedin":"https://www.linkedin.com/company/pearce-real-estate","website":"https://www.hpearce.com/","address":"319 Boston Post Road, Milford, Connecticut 06460, US","email":"","notes":"Established real estate company","priority":"cool","status":"not-contacted"},
-  {"id":51,"name":"Coastal Chiropractic & Wellness","owner":"Dr. Keith Mirante","industry":"Chiropractic","city":"Madison","phone":"+1 203-245-8217","facebook":"","linkedin":"https://www.linkedin.com/company/coastal-chiropractic-wellness","website":"https://www.drmirante.com/","address":"19 Samson Rock Drive, Suite 205, Madison, Connecticut 06443, US","email":"","notes":"TMJ specialist, functional website","priority":"cool","status":"not-contacted"},
-  {"id":52,"name":"Shoreline Chiropractic","owner":"Dr. John Mastrobattisto","industry":"Chiropractic","city":"Madison","phone":"+1 203-245-2556","facebook":"","linkedin":"https://www.linkedin.com/company/shoreline-chiropractic","website":"https://www.madison-chiropractor.com/","address":"","email":"","notes":"Chiropractic care","priority":"cool","status":"not-contacted"},
-  {"id":53,"name":"Celtic Healing Arts","owner":"Anne-Marie Mulholland","industry":"Massage & Wellness","city":"Madison","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/celtic-healing-arts","website":"https://www.celtichealingarts.com/","address":"","email":"","notes":"Massage therapy & Reiki","priority":"cool","status":"not-contacted"},
-  {"id":54,"name":"Sound Body LLC","owner":"Debra Cieri","industry":"Massage Therapy","city":"Madison","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/sound-body-llc","website":"https://www.soundbodyct.com/","address":"","email":"","notes":"Therapeutic massage services","priority":"cool","status":"not-contacted"},
-  {"id":55,"name":"Madison Dental Spa","owner":"Dr. Moumen Almouzayn","industry":"Dentist","city":"Madison","phone":"+1 203-245-0606","facebook":"","linkedin":"https://www.linkedin.com/company/madison-dental-spa","website":"https://www.ctdentalspa.com/","address":"12 Samson Rock Drive, Suite 2B, Madison, Connecticut 06443, US","email":"","notes":"Cosmetic & restorative dentistry","priority":"cool","status":"not-contacted"},
-  {"id":56,"name":"Glazer Dental Associates","owner":"","industry":"Dentist","city":"Durham","phone":"+1 860-349-1725","facebook":"https://www.facebook.com/GlazerDentalAssociates","linkedin":"https://www.linkedin.com/company/glazer-dental-associates","website":"https://glazerdental.com/","address":"Durham, Connecticut, US","email":"","notes":"Serves multiple towns in region","priority":"cool","status":"not-contacted"},
-  {"id":57,"name":"Killingworth Dental","owner":"Ronald Wygonik","industry":"Dentist","city":"Killingworth","phone":"+1 860-663-1113","facebook":"","linkedin":"https://www.linkedin.com/company/killingworth-dental-associates","website":"https://killingworthdental.com/","address":"Killingworth, Connecticut, US","email":"","notes":"Family dentistry","priority":"cool","status":"not-contacted"},
-  {"id":58,"name":"All In Management","owner":"John Vigliotti","industry":"Property Management","city":"Guilford","phone":"+1 203-208-0735","facebook":"","linkedin":"https://www.linkedin.com/company/all-in-management","website":"https://www.allinmgmtapartments.com/","address":"","email":"","notes":"Manages apartment complexes","priority":"cool","status":"not-contacted"},
-  {"id":59,"name":"Robert C. White & Company","owner":"Luke R. Eddinger","industry":"Property Management","city":"Branford","phone":"+1 203-488-5444","facebook":"https://www.facebook.com/RobertCWhiteCompany","linkedin":"https://www.linkedin.com/company/robert-c-white-company","website":"https://www.robertcwhite.com/","address":"12 Main Street, Branford, Connecticut 06405, US","email":"","notes":"Residential property management","priority":"cool","status":"not-contacted"},
-  {"id":60,"name":"Unbundled Property Management","owner":"Greg Andrade","industry":"Property Management","city":"Guilford","phone":"+1 475-234-2015","facebook":"","linkedin":"https://www.linkedin.com/company/unbundled-property-management","website":"https://www.unbundledpm.com/","address":"Guilford, Connecticut, US","email":"","notes":"Serves multiple shoreline towns","priority":"cool","status":"not-contacted"},
-  {"id":61,"name":"Bassett Property Management","owner":"","industry":"Property Management","city":"North Haven","phone":"","facebook":"","linkedin":"","website":"https://bits.ws/","address":"","email":"","notes":"Multi-town property management","priority":"cool","status":"not-contacted"},
-  {"id":62,"name":"Swanson Automotive","owner":"Kurt Swanson","industry":"Auto Repair","city":"East Haven","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/swanson-automotive","website":"https://www.swansonautomotivect.com/","address":"","email":"","notes":"Full-service auto repair, emissions testing","priority":"cool","status":"not-contacted"},
-  {"id":63,"name":"Joanna's Tire and Auto Repair","owner":"","industry":"Auto Repair","city":"East Haven","phone":"+1 203-467-0808","facebook":"","linkedin":"https://www.linkedin.com/company/joannas-tire-and-auto","website":"https://www.joannastireandauto.com/","address":"","email":"","notes":"Tire & auto repair services","priority":"cool","status":"not-contacted"},
-  {"id":64,"name":"Superior Auto Repair and Towing","owner":"Hector J. Piquent","industry":"Auto Repair","city":"West Haven","phone":"+1 203-562-0931","facebook":"","linkedin":"https://www.linkedin.com/company/superior-auto-repair-and-towing","website":"https://www.superiorautorepairtowing.com/","address":"","email":"","notes":"Used car dealer & repair services","priority":"cool","status":"not-contacted"},
-  {"id":65,"name":"Arnone Building & Remodeling","owner":"John A. Arnone","industry":"Home Remodeling","city":"Cheshire","phone":"+1 203-891-8734","facebook":"https://www.facebook.com/arnonebuilding","linkedin":"https://www.linkedin.com/company/arnone-building-remodeling","website":"https://arnonebuilding.com/","address":"Cheshire, Connecticut, US","email":"","notes":"Home improvement services","priority":"cool","status":"not-contacted"},
-  {"id":66,"name":"United Home Experts","owner":"John C. Dudley","industry":"Home Services","city":"Cheshire","phone":"+1 888-748-6439","facebook":"https://www.facebook.com/UnitedHomeExperts","linkedin":"https://www.linkedin.com/company/united-home-experts","website":"https://unitedhomeexperts.com/","address":"Cheshire, Connecticut, US","email":"","notes":"Siding, roofing, windows, doors","priority":"cool","status":"not-contacted"},
-  {"id":67,"name":"Shoreline Pro Landscape Services","owner":"","industry":"Landscaping","city":"Westbrook","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/shoreline-pro-landscape-services","website":"https://shoreline-pro.com/","address":"","email":"","notes":"Lawn care & landscaping","priority":"cool","status":"not-contacted"},
-  {"id":68,"name":"Guilford Mooring","owner":"Michael J. Romei","industry":"Restaurant","city":"Guilford","phone":"+1 203-458-2921","facebook":"https://www.facebook.com/guilfordmooring","linkedin":"https://www.linkedin.com/company/guilford-mooring","website":"https://guilfordmooring.com/","address":"Guilford, Connecticut, US","email":"","notes":"Waterfront fine dining","priority":"cool","status":"not-contacted"},
-  {"id":69,"name":"LT Hair Salon (Lady T)","owner":"","industry":"Hair Salon","city":"Watertown","phone":"+1 203-527-2485","facebook":"","linkedin":"https://www.linkedin.com/company/lt-hair-salon","website":"https://www.lthairsalon.com/","address":"","email":"","notes":"Premier hair salon","priority":"cool","status":"not-contacted"},
-  {"id":70,"name":"Artistex Salon & Spa","owner":"","industry":"Hair Salon & Spa","city":"Westport","phone":"+1 203-222-0344","facebook":"https://www.facebook.com/ArtistexSalonSpa","linkedin":"https://www.linkedin.com/company/artistex-salon-spa","website":"https://artistexsalon.com/","address":"1680 Post Road East, Westport, Connecticut 06880, US","email":"artistexsalonspa@gmail.com","notes":"Full-service salon and spa","priority":"cool","status":"not-contacted"},
-  {"id":71,"name":"Rimage Salon and Spa","owner":"","industry":"Hair Salon & Spa","city":"New Haven","phone":"+1 203-562-4247","facebook":"","linkedin":"https://www.linkedin.com/company/rimage-salon-and-spa","website":"https://rimagesalon.com/","address":"","email":"","notes":"Full-service salon and spa","priority":"cool","status":"not-contacted"},
-  {"id":72,"name":"Salon Space","owner":"","industry":"Hair Salon","city":"North Haven","phone":"+1 203-239-5255","facebook":"","linkedin":"https://www.linkedin.com/company/salon-space-ct","website":"https://salonspacect.com/","address":"","email":"","notes":"Curly hair specialists","priority":"cool","status":"not-contacted"},
-  {"id":73,"name":"Village Coiffures","owner":"","industry":"Hair Salon","city":"Seymour","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/village-coiffures","website":"https://www.villagecoiffuresct.com/","address":"","email":"","notes":"Styling and coloring services","priority":"cool","status":"not-contacted"},
-  {"id":74,"name":"Headliners Salon & Spa","owner":"","industry":"Hair Salon & Spa","city":"Tolland","phone":"(860) 871-3600","facebook":"","linkedin":"","website":"https://www.tollandct.gov/business-directory/headliners-salon-spa","address":"","email":"","notes":"Full-service salon and spa","priority":"cool","status":"not-contacted"},
-  {"id":75,"name":"Continuum Home Health","owner":"","industry":"Home Health Services","city":"New Haven","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/continuum-home-health","website":"https://continuumhomehealth.org/","address":"","email":"","notes":"Comprehensive home health services","priority":"cool","status":"not-contacted"},
-  {"id":76,"name":"EZ Plumbing Service","owner":"Ezra L. Cabrera","industry":"Plumbing","city":"Hamden","phone":"","facebook":"","linkedin":"","website":"https://movingcompanyri.com/ezserviceplumbing/","address":"","email":"","notes":"Plumbing, heating, HVAC services","priority":"cool","status":"not-contacted"},
-  {"id":77,"name":"Rousseau Plumbing & Heating","owner":"Jarrett J. Rousseau","industry":"Plumbing","city":"New Haven","phone":"+1 203-562-5757","facebook":"","linkedin":"https://www.linkedin.com/company/rousseau-plumbing-heating","website":"https://rousseauplumbing.com/","address":"","email":"","notes":"Established plumbing & heating services","priority":"cool","status":"not-contacted"},
-  {"id":78,"name":"A-Team Plumbing & HVAC","owner":"Manuel Galarza","industry":"Plumbing","city":"New Haven","phone":"+1 203-871-0080","facebook":"","linkedin":"https://www.linkedin.com/company/a-team-plumbing-and-hvac","website":"https://a-teamplumbingandhvac.com/","address":"","email":"","notes":"Expert plumbing & excavation services","priority":"cool","status":"not-contacted"},
-  {"id":79,"name":"HARP Plumbing & HVAC","owner":"","industry":"Plumbing & HVAC","city":"Hamden","phone":"+1 203-288-1122","facebook":"","linkedin":"https://www.linkedin.com/company/harp-home-services","website":"https://www.harpcanhelpyou.com/","address":"","email":"","notes":"Full-service plumbing & HVAC","priority":"cool","status":"not-contacted"},
-  {"id":80,"name":"The Shipwright's Daughter","owner":"","industry":"Restaurant","city":"Mystic","phone":"+1 860-536-7605","facebook":"https://www.facebook.com/theshipwrightsdaughter","linkedin":"https://www.linkedin.com/company/the-shipwrights-daughter","website":"https://www.shipwrightsdaughter.com/","address":"15 Holmes Street, Mystic, Connecticut 06355, US","email":"","notes":"James Beard Award-winning restaurant","priority":"cool","status":"not-contacted"},
-  {"id":81,"name":"On The Rocks Restaurant","owner":"","industry":"Restaurant","city":"East Haddam","phone":"+1 860-434-6644","facebook":"https://www.facebook.com/FoxHopyardGolfClub","linkedin":"https://www.linkedin.com/company/fox-hopyard-golf-club","website":"https://www.foxhopyard.com/dining/","address":"1 Hopyard Road, East Haddam, Connecticut 06423, US","email":"","notes":"Golf club restaurant","priority":"cool","status":"not-contacted"},
-  {"id":82,"name":"Madison Square Wellness","owner":"","industry":"Wellness","city":"Madison","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/madison-square-wellness","website":"https://madisonsquarewellness.com/","address":"","email":"","notes":"Wellness center","priority":"cool","status":"not-contacted"},
-  {"id":83,"name":"Physical Therapy and Wellness Treatment Center","owner":"","industry":"Wellness","city":"Madison","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/pt-wellness-treatment-center","website":"http://www.ptwellnessandaquatics.net/","address":"","email":"","notes":"Physical therapy and wellness services","priority":"cool","status":"not-contacted"},
-  {"id":84,"name":"Friedler Dental Group","owner":"Dr. Alan Friedler","industry":"Dentist","city":"Guilford","phone":"+1 203-453-2585","facebook":"https://www.facebook.com/FriedlerDentalGroup","linkedin":"https://www.linkedin.com/company/friedler-dental-group","website":"https://www.friedlerdentalgroup.com/","address":"2 Ledyard Street, Guilford, Connecticut 06437, US","email":"","notes":"Multi-location dental practice","priority":"cool","status":"not-contacted"},
-  {"id":85,"name":"Shoreline Children's Dental","owner":"Dr. Kate Glazer, DMD","industry":"Dentist","city":"Guilford","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/shoreline-childrens-dental","website":"https://www.shorelinechildrensdental.com/","address":"","email":"","notes":"Pediatric dental specialty","priority":"cool","status":"not-contacted"},
-  {"id":86,"name":"Cosmetic & Implant Dentistry of CT","owner":"","industry":"Dentist","city":"Branford","phone":"+1 203-488-3510","facebook":"","linkedin":"https://www.linkedin.com/company/cosmetic-implant-dentistry-of-ct","website":"https://www.cidct.com/","address":"","email":"","notes":"Advanced implant dentistry","priority":"cool","status":"not-contacted"},
-  {"id":87,"name":"Ocean Dental","owner":"Dr. Norman Dahl III, DDS","industry":"Dentist","city":"Branford","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/ocean-dental","website":"https://normandahl.com/","address":"","email":"","notes":"Since 2001, general dentistry","priority":"cool","status":"not-contacted"},
-  {"id":88,"name":"Just Smiles Dental","owner":"","industry":"Dentist","city":"Branford","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/just-smiles-dental","website":"http://www.justsmilesdentalct.com/","address":"","email":"","notes":"Cosmetic dentistry services","priority":"cool","status":"not-contacted"},
-  {"id":89,"name":"Camelion Salon","owner":"","industry":"Hair Salon","city":"Middletown","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/camelion-salon","website":"http://camelionsalon.com/","address":"","email":"","notes":"Paul Mitchell focus salon","priority":"cool","status":"not-contacted"},
-  {"id":90,"name":"Colored by Andria","owner":"Andria","industry":"Hair Salon","city":"Middletown","phone":"","facebook":"","linkedin":"https://www.linkedin.com/company/colored-by-andria","website":"https://www.coloredbyandria.com/","address":"","email":"","notes":"Hair coloring specialist","priority":"cool","status":"not-contacted"},
-  {"id":91,"name":"bluefrog Plumbing + Drain","owner":"","industry":"Plumbing","city":"Meriden","phone":"+1 203-937-2772","facebook":"","linkedin":"https://www.linkedin.com/company/bluefrog-plumbing--drain-of-central-ct","website":"https://bluefrogplumbingcentralct.com/","address":"","email":"","notes":"Central CT plumbing services","priority":"cool","status":"not-contacted"},
-  {"id":92,"name":"Houlihan Lawrence","owner":"","industry":"Real Estate","city":"Milford","phone":"+1 914-273-9505","facebook":"https://www.facebook.com/houlihanlawrence","linkedin":"https://www.linkedin.com/company/houlihan-lawrence","website":"https://www.houlihanlawrence.com/","address":"Rye Brook, New York, US","email":"","notes":"Full-service real estate company","priority":"chain","status":"not-contacted"},
-  {"id":93,"name":"William Raveis Real Estate","owner":"","industry":"Real Estate","city":"Milford","phone":"+1 203-458-8000","facebook":"https://www.facebook.com/WilliamRaveis","linkedin":"https://www.linkedin.com/company/william-raveis-real-estate","website":"https://www.raveis.com/","address":"One Dock Road, Shelton, Connecticut 06484, US","email":"","notes":"Northeast's largest family-owned real estate firm","priority":"chain","status":"not-contacted"},
-  {"id":94,"name":"Coldwell Banker","owner":"","industry":"Real Estate","city":"Milford","phone":"+1 973-407-5000","facebook":"https://www.facebook.com/coldwellbanker","linkedin":"https://www.linkedin.com/company/coldwell-banker","website":"https://www.coldwellbankerhomes.com/","address":"Madison, New Jersey, US","email":"","notes":"National real estate company","priority":"chain","status":"not-contacted"},
-  {"id":95,"name":"Comfort Keepers","owner":"","industry":"Home Care Services","city":"Wallingford","phone":"+1 888-463-4100","facebook":"https://www.facebook.com/ComfortKeepers","linkedin":"https://www.linkedin.com/company/comfort-keepers","website":"https://www.comfortkeepers.com/","address":"Louisville, Kentucky, US","email":"","notes":"Senior home care services","priority":"chain","status":"not-contacted"},
-  {"id":96,"name":"Mr. Rooter Plumbing","owner":"","industry":"Plumbing","city":"New Haven","phone":"+1 254-759-6439","facebook":"https://www.facebook.com/MrRooter","linkedin":"https://www.linkedin.com/company/mr.-rooter","website":"https://www.mrrooter.com/","address":"Waco, Texas, US","email":"","notes":"Licensed plumbing services","priority":"chain","status":"not-contacted"},
-  {"id":97,"name":"Roto-Rooter","owner":"","industry":"Plumbing","city":"Hamden","phone":"+1 513-762-6900","facebook":"https://www.facebook.com/rotorooter","linkedin":"https://www.linkedin.com/company/roto-rooter","website":"https://www.rotorooter.com/","address":"Cincinnati, Ohio, US","email":"","notes":"National plumbing chain","priority":"chain","status":"not-contacted"}
-];
+// ====== SUPABASE CONFIG ======
+const SUPABASE_URL = 'https://slmdfgunkmvbqbzjfpdz.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_pa4TrNjKDJuQRu_Z-20dXg_Shiem0EA';
+const TABLE = 'verge_leads';
 
-// State
+// ====== STATE ======
+let leads = [];
 let currentStageFilter = 'all';
 let currentPriorityFilter = 'all';
-const STORAGE_KEY = 'verge_leads_v1';
+let saving = false;
 
-// Load saved state
-function loadState() {
+// ====== SUPABASE API HELPERS ======
+async function supaFetch(path, options = {}) {
+  const url = `${SUPABASE_URL}/rest/v1/${path}`;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': options.prefer || 'return=representation'
+  };
+  const res = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase error ${res.status}: ${text}`);
+  }
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('json')) return res.json();
+  return null;
+}
+
+// ====== DATA LAYER ======
+async function loadLeads() {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const states = JSON.parse(saved);
-      leads.forEach(lead => {
-        if (states[lead.id]) lead.status = states[lead.id];
-      });
-    }
-  } catch(e) {
-    // localStorage may not be available — use in-memory state only
+    setSyncStatus('loading', 'Loading...');
+    const data = await supaFetch(`${TABLE}?select=*&order=id.asc`);
+    // Map owner_name back to owner for UI compatibility
+    leads = data.map(row => ({
+      id: row.id,
+      name: row.name || '',
+      owner: row.owner_name || '',
+      industry: row.industry || '',
+      city: row.city || '',
+      phone: row.phone || '',
+      facebook: row.facebook || '',
+      linkedin: row.linkedin || '',
+      website: row.website || '',
+      address: row.address || '',
+      email: row.email || '',
+      notes: row.notes || '',
+      priority: row.priority || 'cool',
+      status: row.status || 'not-contacted',
+      updated_by: row.updated_by || '',
+      updated_at: row.updated_at || ''
+    }));
+    updateHeaderStats();
+    updatePipelineCounts();
+    renderLeads();
+    setSyncStatus('ok', 'Synced');
+  } catch (err) {
+    console.error('Failed to load leads:', err);
+    setSyncStatus('error', 'Offline');
+    showToast('⚠️ Failed to load — check connection');
   }
 }
 
-function saveState() {
+async function updateLead(id, fields) {
+  if (saving) return;
+  saving = true;
   try {
-    const states = {};
-    leads.forEach(l => states[l.id] = l.status);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(states));
-  } catch(e) {}
+    setSyncStatus('loading', 'Saving...');
+    // Map owner back to owner_name for DB
+    const dbFields = { ...fields };
+    if ('owner' in dbFields) {
+      dbFields.owner_name = dbFields.owner;
+      delete dbFields.owner;
+    }
+    dbFields.updated_at = new Date().toISOString();
+    dbFields.updated_by = getCurrentUser();
+
+    await supaFetch(`${TABLE}?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(dbFields)
+    });
+
+    // Update local state
+    const lead = leads.find(l => l.id === id);
+    if (lead) Object.assign(lead, fields);
+
+    setSyncStatus('ok', 'Saved');
+  } catch (err) {
+    console.error('Failed to update lead:', err);
+    setSyncStatus('error', 'Save failed');
+    showToast('⚠️ Failed to save — retrying...');
+    // Retry once after 2s
+    setTimeout(async () => {
+      try {
+        const dbFields = { ...fields };
+        if ('owner' in dbFields) { dbFields.owner_name = dbFields.owner; delete dbFields.owner; }
+        dbFields.updated_at = new Date().toISOString();
+        dbFields.updated_by = getCurrentUser();
+        await supaFetch(`${TABLE}?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(dbFields) });
+        setSyncStatus('ok', 'Saved');
+      } catch (e) {
+        setSyncStatus('error', 'Offline');
+        showToast('⚠️ Could not save. Changes lost.');
+      }
+    }, 2000);
+  } finally {
+    saving = false;
+  }
 }
 
+function getCurrentUser() {
+  // Simple user identification via localStorage
+  let user = localStorage.getItem('verge_user');
+  if (!user) {
+    user = prompt('Enter your name (for tracking who made changes):') || 'Unknown';
+    localStorage.setItem('verge_user', user);
+  }
+  return user;
+}
+
+// ====== SYNC STATUS ======
+function setSyncStatus(status, label) {
+  const dot = document.getElementById('syncDot');
+  const lbl = document.getElementById('syncLabel');
+  dot.className = 'sync-dot' + (status === 'error' ? ' error' : status === 'loading' ? ' loading' : '');
+  lbl.textContent = label;
+}
+
+// ====== UI HELPERS ======
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function updateHeaderStats() {
+  document.getElementById('totalCount').textContent = leads.length;
+  document.getElementById('ownerCount').textContent = leads.filter(l => l.owner).length;
+  document.getElementById('fbCount').textContent = leads.filter(l => l.facebook).length;
+  document.getElementById('phoneCount').textContent = leads.filter(l => l.phone).length;
 }
 
 function updatePipelineCounts() {
@@ -329,8 +361,6 @@ function updatePipelineCounts() {
     const el = document.getElementById('stage-'+k);
     if(el) el.textContent = counts[k];
   });
-
-  // Revenue calc: $1,500 per closed deal
   const closedCount = counts.closed;
   const pipelineCount = counts.messaged + counts.responded + counts.meeting;
   document.getElementById('pipelineValue').textContent = '$' + ((pipelineCount + closedCount) * 1500).toLocaleString();
@@ -355,12 +385,35 @@ function changeStatus(id, newStatus) {
   const lead = leads.find(l => l.id === id);
   if(lead) {
     lead.status = newStatus;
-    saveState();
     updatePipelineCounts();
-    // Update select styling
     const sel = document.querySelector(`select[data-id="${id}"]`);
     if(sel) { sel.className = 'status-select ' + newStatus; }
+    // Save to Supabase
+    updateLead(id, { status: newStatus });
   }
+}
+
+function editNotes(id) {
+  const el = document.getElementById('notes-display-' + id);
+  const lead = leads.find(l => l.id === id);
+  if (!el || !lead) return;
+  const current = lead.notes || '';
+  el.innerHTML = `<textarea class="card-notes-input" id="notes-input-${id}" onblur="saveNotes(${id})" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveNotes(${id})}">${current}</textarea>`;
+  const input = document.getElementById('notes-input-' + id);
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+}
+
+function saveNotes(id) {
+  const input = document.getElementById('notes-input-' + id);
+  const lead = leads.find(l => l.id === id);
+  if (!input || !lead) return;
+  const newNotes = input.value.trim();
+  lead.notes = newNotes;
+  const el = document.getElementById('notes-display-' + id);
+  el.innerHTML = `<div class="card-notes-text" onclick="editNotes(${id})" title="Click to edit notes">${newNotes ? newNotes : '<em style="color:#ccc">Click to add notes...</em>'} ✏️</div>`;
+  updateLead(id, { notes: newNotes });
+  showToast('📝 Notes saved');
 }
 
 function copyPhone(phone) {
@@ -375,9 +428,7 @@ function generateMessage(lead) {
   const name = lead.owner ? lead.owner.split(' ')[0] : '';
   const greeting = name ? `Hey ${name}` : 'Hey there';
   const isHot = lead.priority === 'hot';
-  const isWarm = lead.priority === 'warm';
 
-  // Industry-specific hooks
   const hooks = {
     'Restaurant': isHot
       ? `I came across ${lead.name} and noticed you don't have a website yet. In the restaurant world that's a ton of missed reservations and takeout orders — people Google before they eat.`
@@ -403,7 +454,6 @@ function generateMessage(lead) {
     'Auto Repair': `I came across ${lead.name} and looked at your online presence. When someone's car breaks down, they Google — having a solid website means you're the one they call.`,
   };
 
-  // Get the right hook
   let hook = hooks[lead.industry];
   if (!hook) {
     hook = isHot
@@ -411,13 +461,11 @@ function generateMessage(lead) {
       : `I came across ${lead.name} and took a look at your site. I think there's real opportunity to level it up and turn it into something that actually drives business for you.`;
   }
 
-  const msg = `${greeting} — I'm Caden, I run a web design studio here in CT. ${hook}
+  return `${greeting} — I'm Caden, I run a web design studio here in CT. ${hook}
 
 I build custom sites for local businesses — $1,500 flat, done in about 2 weeks, no subscriptions or hidden fees. You can check out some of my work at verge-studio.com.
 
 If you're interested or just want to see what it'd look like for your business, shoot me a message. No pressure either way.`;
-
-  return msg;
 }
 
 function toggleMessage(id) {
@@ -449,13 +497,10 @@ function renderLeads() {
   const grid = document.getElementById('leadsGrid');
 
   let filtered = leads.filter(l => {
-    // Stage filter
     if(currentStageFilter !== 'all' && l.status !== currentStageFilter) return false;
-    // Priority filter
     if(currentPriorityFilter === 'owner') {
       if(!l.owner) return false;
     } else if(currentPriorityFilter !== 'all' && l.priority !== currentPriorityFilter) return false;
-    // Search
     if(query) {
       const searchable = (l.name + ' ' + l.owner + ' ' + l.industry + ' ' + l.city + ' ' + l.notes).toLowerCase();
       if(!searchable.includes(query)) return false;
@@ -481,6 +526,13 @@ function renderLeads() {
         <div class="card-owner-name" style="cursor:pointer" onclick="copyOwner('${l.owner.replace(/'/g, "\\'")}')" title="Click to copy name">${l.owner} 📋</div>
       </div>` : '';
 
+    const notesHtml = `
+      <div class="card-notes" id="notes-display-${l.id}">
+        <div class="card-notes-text" onclick="editNotes(${l.id})" title="Click to edit notes">${l.notes ? l.notes : '<em style="color:#ccc">Click to add notes...</em>'} ✏️</div>
+      </div>`;
+
+    const updatedHtml = l.updated_by ? `<div style="padding:0 16px 4px;font-size:10px;color:#bbb">Last updated by ${l.updated_by}</div>` : '';
+
     return `
     <div class="lead-card ${l.priority}">
       <div class="card-header">
@@ -493,6 +545,7 @@ function renderLeads() {
         ${l.address ? `<span>🏠 ${l.address.split(',').slice(0,2).join(',')}</span>` : ''}
       </div>
       ${ownerHtml}
+      ${notesHtml}
       <div class="card-links">${links.join('')}</div>
       ${l.priority !== 'chain' ? `<div class="card-message">
         <div class="msg-toggle" onclick="toggleMessage(${l.id})">
@@ -516,6 +569,7 @@ function renderLeads() {
           <option value="not-interested" ${l.status==='not-interested'?'selected':''}>❌ Not Interested</option>
         </select>
       </div>
+      ${updatedHtml}
     </div>`;
   }).join('');
 
@@ -533,14 +587,36 @@ function exportCSV() {
   showToast('📥 CSV exported!');
 }
 
-function saveProgress() {
-  saveState();
-  showToast('💾 Progress saved!');
+async function refreshData() {
+  showToast('🔄 Refreshing...');
+  await loadLeads();
+  showToast('✅ Data refreshed!');
 }
 
-// Init
-loadState();
-renderLeads();
+// ====== AUTO-REFRESH (poll every 30s for changes from other users) ======
+setInterval(async () => {
+  try {
+    const data = await supaFetch(`${TABLE}?select=id,status,notes,updated_at&order=id.asc`);
+    let changed = false;
+    data.forEach(row => {
+      const local = leads.find(l => l.id === row.id);
+      if (local && (local.status !== row.status || local.notes !== (row.notes || ''))) {
+        local.status = row.status;
+        local.notes = row.notes || '';
+        changed = true;
+      }
+    });
+    if (changed) {
+      renderLeads();
+      updatePipelineCounts();
+      setSyncStatus('ok', 'Updated');
+      setTimeout(() => setSyncStatus('ok', 'Synced'), 2000);
+    }
+  } catch(e) { /* silent fail on poll */ }
+}, 30000);
+
+// ====== INIT ======
+loadLeads();
 </script>
 </body>
 </html>
