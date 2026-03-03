@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verge Studio — Sales Cheat Sheet</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#1a1a1a;color:#e8e4e0;-webkit-text-size-adjust:100%}
+
+.header{background:#2D2D2D;padding:16px 20px;text-align:center;position:sticky;top:0;z-index:100;border-bottom:2px solid #C47B4E}
+.header h1{font-size:18px;font-weight:800;color:#fff;letter-spacing:1px}
+.header h1 span{color:#C47B4E}
+.header p{font-size:11px;color:#888;margin-top:2px}
+
+.nav{display:flex;gap:0;overflow-x:auto;background:#222;position:sticky;top:58px;z-index:99;border-bottom:1px solid #333}
+.nav a{flex:1;min-width:0;text-align:center;padding:10px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#888;text-decoration:none;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+.nav a.active,.nav a:active{color:#C47B4E;border-bottom-color:#C47B4E;background:rgba(196,123,78,0.1)}
+
+.section{display:none;padding:16px 20px 100px}
+.section.active{display:block}
+
+h2{font-size:16px;font-weight:800;color:#C47B4E;margin:16px 0 8px;text-transform:uppercase;letter-spacing:0.5px}
+h2:first-child{margin-top:0}
+
+h3{font-size:13px;font-weight:700;color:#fff;margin:12px 0 4px}
+
+.card{background:#2D2D2D;border-radius:10px;padding:14px;margin:8px 0;border-left:3px solid #C47B4E}
+.card.green{border-left-color:#66BB6A}
+.card.red{border-left-color:#FF4444}
+.card.blue{border-left-color:#42A5F5}
+
+.card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#C47B4E;margin-bottom:4px}
+.card.green .card-label{color:#66BB6A}
+.card.red .card-label{color:#FF4444}
+.card.blue .card-label{color:#42A5F5}
+
+.card p,.card li{font-size:13px;line-height:1.5;color:#ccc}
+.card strong{color:#fff}
+.card .say{color:#C47B4E;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+
+.quote{background:#1a1a1a;border-radius:8px;padding:10px 12px;margin:6px 0;font-size:13px;line-height:1.5;color:#e8e4e0;border:1px solid #333;font-style:italic}
+
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.stat{background:#2D2D2D;border-radius:8px;padding:10px;text-align:center}
+.stat .num{font-size:20px;font-weight:800;color:#C47B4E;display:block}
+.stat .label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px}
+
+.roi-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#2D2D2D;border-radius:8px;margin:4px 0}
+.roi-item .industry{font-size:13px;font-weight:600;color:#fff}
+.roi-item .math{font-size:12px;color:#66BB6A;font-weight:600}
+
+.rule{display:flex;align-items:flex-start;gap:8px;padding:6px 0}
+.rule .icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.rule .text{font-size:12px;line-height:1.4;color:#ccc}
+
+.copy-btn{display:block;width:100%;padding:12px;background:#C47B4E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin:8px 0;font-family:'Inter',sans-serif}
+.copy-btn:active{background:#D4956A}
+.copy-btn.copied{background:#66BB6A}
+
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#2D2D2D;padding:10px 20px;display:flex;gap:8px;border-top:2px solid #C47B4E;z-index:100}
+.bottom-bar a{flex:1;text-align:center;padding:10px;background:#C47B4E;color:#fff;text-decoration:none;border-radius:8px;font-size:12px;font-weight:700}
+.bottom-bar a:nth-child(2){background:#333;color:#C47B4E;border:1px solid #C47B4E}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>VERGE <span>STUDIO</span> — CHEAT SHEET</h1>
+<p>Quick reference for closing deals</p>
+</div>
+
+<div class="nav" id="nav">
+<a href="#" class="active" onclick="showTab('offer',this)">Offer</a>
+<a href="#" onclick="showTab('close',this)">Close</a>
+<a href="#" onclick="showTab('objections',this)">Objections</a>
+<a href="#" onclick="showTab('roi',this)">ROI Math</a>
+<a href="#" onclick="showTab('rules',this)">Rules</a>
+</div>
+
+<!-- ===== OFFER TAB ===== -->
+<div class="section active" id="offer">
+<div class="stat-row">
+<div class="stat"><span class="num">$1,500</span><span class="label">Flat fee — one time</span></div>
+<div class="stat"><span class="num">14 days</span><span class="label">Average delivery</span></div>
+<div class="stat"><span class="num">Unlimited</span><span class="label">Revisions</span></div>
+<div class="stat"><span class="num">47+</span><span class="label">Sites launched</span></div>
+</div>
+
+<h2>Key Facts</h2>
+<div class="card">
+<p><strong>$1,500 flat.</strong> No monthly fees. No subscriptions. No hosting charges. They pay once and own it forever.</p>
+</div>
+<div class="card">
+<p><strong>Unlimited revisions</strong> until they love it. <strong>30 days free support</strong> after launch. Zero risk.</p>
+</div>
+<div class="card">
+<p><strong>100% satisfaction rate.</strong> 47+ sites. Connecticut-based — we're local, not overseas.</p>
+</div>
+
+<h2>vs. Competition</h2>
+<div class="card red">
+<div class="card-label">Wix / Squarespace</div>
+<p>$30-50/month <strong>FOREVER</strong>. Template site. $1,080 after 3 years and they don't even own it.</p>
+</div>
+<div class="card red">
+<div class="card-label">Web Agency</div>
+<p>$5,000-$20,000+. Takes 6-12 weeks. Way over budget for local businesses.</p>
+</div>
+<div class="card red">
+<div class="card-label">Cheap Freelancer</div>
+<p>$200-800. Cookie-cutter template. No revisions, no support, disappears.</p>
+</div>
+<div class="card green">
+<div class="card-label">Verge Studio</div>
+<p><strong>$1,500 one-time. Custom. 2 weeks. You own it. Done.</strong></p>
+</div>
+</div>
+
+<!-- ===== CLOSE TAB ===== -->
+<div class="section" id="close">
+<h2>Closing Lines</h2>
+
+<div class="card">
+<div class="card-label">Assumptive Close</div>
+<div class="say">Say this:</div>
+<div class="quote">"So should we kick this off this week or next? I can have the first draft to you in about a week."</div>
+</div>
+
+<div class="card">
+<div class="card-label">Nothing to Lose</div>
+<div class="say">Say this:</div>
+<div class="quote">"Unlimited revisions, 30 days free support, and you see the design before it goes live. If you don't love it, we keep going until you do. There's literally no downside."</div>
+</div>
+
+<div class="card">
+<div class="card-label">Urgency</div>
+<div class="say">Say this:</div>
+<div class="quote">"We only take on a few projects at a time to keep quality high. I've got a slot open right now, but I can't hold it."</div>
+</div>
+
+<div class="card">
+<div class="card-label">The No-Monthly-Fee Killer</div>
+<div class="say">Say this:</div>
+<div class="quote">"After 3 years on Wix, you've spent $1,080 and you still don't own anything — cancel and it's gone. With us, you pay $1,500, own it forever, and never pay us another dime."</div>
+</div>
+
+<div class="card green">
+<div class="card-label">Ready to Close</div>
+<div class="say">Say this:</div>
+<div class="quote">"Ready to go? I'll send you a payment link right now — quick and easy. Once that's done, we start the same day."</div>
+</div>
+
+<button class="copy-btn" onclick="copyText('https://buy.stripe.com/aFafZhgeqfAwcyy93x2B202', this)">📎 Copy Payment Link</button>
+</div>
+
+<!-- ===== OBJECTIONS TAB ===== -->
+<div class="section" id="objections">
+<h2>Handle Every Objection</h2>
+
+<div class="card">
+<div class="card-label">"$1,500 is too much"</div>
+<div class="quote">"How much is one new customer worth to you? If you're a restaurant, one table a night is $50-$100. That's $1,500 in a month. The site pays for itself in 30 days."</div>
+</div>
+
+<div class="card">
+<div class="card-label">"I'll just use Wix"</div>
+<div class="quote">"Be honest — how long has that been on your to-do list? Most owners try Wix, spend 20 hours fighting the editor, and end up with a template. Your time is worth more than that."</div>
+</div>
+
+<div class="card">
+<div class="card-label">"I need to think about it"</div>
+<div class="quote">"Totally fair. What specifically do you want to think over — is it the price, the timing, or something else?"</div>
+<p style="font-size:11px;color:#888;margin-top:6px">↑ Forces them to name the real objection. Then handle THAT.</p>
+</div>
+
+<div class="card">
+<div class="card-label">"I already have a website"</div>
+<div class="quote">"I saw it — and respectfully, it's not doing what it should. Pull it up on your phone right now. Is that the first impression you want to give customers?"</div>
+</div>
+
+<div class="card">
+<div class="card-label">"My nephew can do it free"</div>
+<div class="quote">"Ha — I hear that a lot. Usually it takes 6 months, looks amateur, and then they're too busy to fix anything. Your business is your livelihood — it's too important to leave to a favor."</div>
+</div>
+
+<div class="card">
+<div class="card-label">"Business is slow right now"</div>
+<div class="quote">"That's exactly why you need this. When business is slow, you need more customers finding you. A website works 24/7 — it's a salesperson that never sleeps."</div>
+</div>
+
+<div class="card">
+<div class="card-label">"I don't think a website will help"</div>
+<div class="quote">"97% of people search online before visiting a local business. If you're not there, you literally don't exist to them. Your competitors are showing up — every customer that finds them instead of you is money you're leaving on the table."</div>
+</div>
+</div>
+
+<!-- ===== ROI TAB ===== -->
+<div class="section" id="roi">
+<h2>Payback Math by Industry</h2>
+<p style="font-size:12px;color:#888;margin-bottom:12px">Use these during the pitch to make $1,500 feel tiny.</p>
+
+<div class="roi-item"><span class="industry">🍽️ Restaurant</span><span class="math">1 table/night = paid in 30 days</span></div>
+<div class="roi-item"><span class="industry">🔧 Plumber</span><span class="math">3-7 jobs = breakeven</span></div>
+<div class="roi-item"><span class="industry">🦷 Dentist</span><span class="math">1 patient = $1K-$3K lifetime</span></div>
+<div class="roi-item"><span class="industry">💇 Salon</span><span class="math">1 weekly client = $3K/year</span></div>
+<div class="roi-item"><span class="industry">🌿 Landscaping</span><span class="math">1 contract = $2K-$5K</span></div>
+<div class="roi-item"><span class="industry">🏠 Home Services</span><span class="math">1-2 jobs = breakeven</span></div>
+<div class="roi-item"><span class="industry">🏢 Real Estate</span><span class="math">1 listing = pays for 10 sites</span></div>
+<div class="roi-item"><span class="industry">🚗 Auto Repair</span><span class="math">5-8 jobs = breakeven</span></div>
+
+<h2>The Universal Pitch</h2>
+<div class="card green">
+<div class="say">Say this for ANY industry:</div>
+<div class="quote">"How much is one new customer worth to you? [Let them answer.] So you need [1,500 ÷ their answer] new customers to pay this off. After that, every customer the website brings in is pure profit. And the site works for you forever."</div>
+</div>
+</div>
+
+<!-- ===== RULES TAB ===== -->
+<div class="section" id="rules">
+<h2>Do's</h2>
+<div class="rule"><span class="icon">✅</span><span class="text"><strong>Personalize every message.</strong> Use their business name and something specific.</span></div>
+<div class="rule"><span class="icon">✅</span><span class="text"><strong>Update the Lead Tracker</strong> after every interaction.</span></div>
+<div class="rule"><span class="icon">✅</span><span class="text"><strong>Know the portfolio.</strong> Visit verge-studio.com before every pitch.</span></div>
+<div class="rule"><span class="icon">✅</span><span class="text"><strong>Use the ROI math.</strong> Always calculate their payback period.</span></div>
+<div class="rule"><span class="icon">✅</span><span class="text"><strong>Ask questions.</strong> The more they talk, the closer you are.</span></div>
+<div class="rule"><span class="icon">✅</span><span class="text"><strong>Follow up once.</strong> If no response after follow-up, move on.</span></div>
+
+<h2>Don'ts</h2>
+<div class="rule"><span class="icon">🚫</span><span class="text"><strong>Never be desperate.</strong> Confidence closes deals.</span></div>
+<div class="rule"><span class="icon">🚫</span><span class="text"><strong>Never trash-talk their site.</strong> Be diplomatic but honest.</span></div>
+<div class="rule"><span class="icon">🚫</span><span class="text"><strong>Never promise SEO rankings.</strong> Don't say "you'll be #1 on Google."</span></div>
+<div class="rule"><span class="icon">🚫</span><span class="text"><strong>Never spam.</strong> One outreach + one follow-up max.</span></div>
+<div class="rule"><span class="icon">🚫</span><span class="text"><strong>Never negotiate price.</strong> $1,500 is $1,500. Period.</span></div>
+<div class="rule"><span class="icon">🚫</span><span class="text"><strong>Never lie</strong> about our track record or capabilities.</span></div>
+
+<h2>Quick Links</h2>
+<div class="card blue">
+<p><strong>Lead Tracker:</strong> verge-studio.com/leads.html</p>
+<p><strong>Portfolio:</strong> verge-studio.com</p>
+<p><strong>Payment:</strong> Stripe link (copy from Close tab)</p>
+</div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+<a href="https://www.verge-studio.com/leads.html" target="_blank">📊 Lead Tracker</a>
+<a href="https://www.verge-studio.com" target="_blank">🌐 Portfolio</a>
+</div>
+
+<script>
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(el) el.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📎 Copy Payment Link'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>
